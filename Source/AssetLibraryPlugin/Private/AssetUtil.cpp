@@ -39,7 +39,7 @@ TArray <uint8> AssetUtil::GetThumbnail(const FString& ObjectPath)
 		UE_LOG(LogTemp, Warning, TEXT("Asset not found: %s"), *ObjectPath);
 		return TArray <uint8>();
 	}
-	// FObjectThumbnail* ObjectThumbnail = ThumbnailTools::GenerateThumbnailForObjectToSaveToDisk(AssetData.GetAsset());
+
 	FObjectThumbnail* ObjectThumbnail = ThumbnailTools::GenerateThumbnailForObjectToSaveToDisk(AssetData.GetAsset());
 	if (ObjectThumbnail)
 	{

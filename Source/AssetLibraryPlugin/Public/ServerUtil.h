@@ -16,10 +16,10 @@ public:
 	static bool Start(uint32);
 	static void Stop();
 
-	static TUniquePtr<FHttpServerResponse> JsonResponse(const FAssetInfo& AssetInfo);
-	static TUniquePtr<FHttpServerResponse> BinaryResponse(TArray<uint8> BinaryData);
 	static FHttpRequestHandler CreateHandler(const UnrealHttpServer::FHttpResponser& HttpResponser);
-	static TUniquePtr<FHttpServerResponse> FindInfo(const FHttpServerRequest& Request);
-	static TUniquePtr<FHttpServerResponse> FindThumbnail(const FHttpServerRequest& Request);
 	static FString GetJsonValue(const FString& JsonString, const FString& Key);
+	static TUniquePtr<FHttpServerResponse> FindInfo(const FHttpServerRequest& Request);
+	static TUniquePtr<FHttpServerResponse> Response(const FAssetInfo& AssetInfo);
+	static TUniquePtr<FHttpServerResponse> Response(TArray<uint8> BinaryData);
+	static TUniquePtr<FHttpServerResponse> PathResponse();
 };

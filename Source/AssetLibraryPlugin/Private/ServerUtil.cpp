@@ -6,6 +6,7 @@
 #include "HttpServerModule.h"
 #include "IHttpRouter.h"
 #include "WebUtil.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
 
@@ -17,7 +18,6 @@ bool ServerUtil::Start(const uint32 Port)
 	UE_LOG(LogTemp, Log, TEXT("Starting AssetLibraryHttpServer Server..."));
 	
 	TSharedPtr<IHttpRouter> HttpRouter = HttpServerInstance->GetHttpRouter(Port);
-
 	
 	if (!HttpRouter)
 	{
@@ -25,12 +25,10 @@ bool ServerUtil::Start(const uint32 Port)
 		return false;
 	}
 
-	FHttpPath InfoPath("/Info");
-	FHttpPath ThumbnailPath("/ThumbnailPath");
-	
 	UE_LOG(LogTemp, Log, TEXT("Starting Bind Router..."));
+	
+	FHttpPath InfoPath("/Info");
 	HttpRouter->BindRoute(InfoPath, EHttpServerRequestVerbs::VERB_POST, CreateHandler(FindInfo));
-	HttpRouter->BindRoute(ThumbnailPath, EHttpServerRequestVerbs::VERB_POST, CreateHandler(FindThumbnail));
 
 	HttpServerInstance->StartAllListeners();
 	
@@ -42,33 +40,6 @@ void ServerUtil::Stop()
 	auto HttpServerModule = &FHttpServerModule::Get();
 	HttpServerModule->StopAllListeners();
 }
-
-TUniquePtr<FHttpServerResponse> ServerUtil::JsonResponse(const FAssetInfo& AssetInfo)
-{
-	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
-	
-	TArray< TSharedPtr<FJsonValue> > DependenciesJson;
-	for( FName Dependency : AssetInfo.AssetDependencies)
-	{
-		DependenciesJson.Add(MakeShareable(new FJsonValueString(Dependency.ToString())));
-	}
-	
-	JsonObject->SetStringField(TEXT("Class"), AssetInfo.AssetClass.ToString());
-	JsonObject->SetArrayField(TEXT("Dependencies"), DependenciesJson);
-	
-	FString JsonString;
-	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&JsonString);
-
-	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
-	return FHttpServerResponse::Create(JsonString, TEXT("application/json"));
-}
-
-
-TUniquePtr<FHttpServerResponse> ServerUtil::BinaryResponse(TArray<uint8> BinaryData)
-{
-	return FHttpServerResponse::Create(BinaryData, TEXT("image/png"));
-}
-
 
 FHttpRequestHandler ServerUtil::CreateHandler(const UnrealHttpServer::FHttpResponser& HttpResponser)
 {
@@ -87,71 +58,31 @@ FHttpRequestHandler ServerUtil::CreateHandler(const UnrealHttpServer::FHttpRespo
 TUniquePtr<FHttpServerResponse> ServerUtil::FindInfo(const FHttpServerRequest& Request)
 {
 	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
-	/* DebugLog */
-	/* 
-	if (GEngine != nullptr)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("Request Received, Processing..."));
-	}
-
-	for (auto QueryParam : Request.QueryParams)
-	{
-		UE_LOG(LogTemp, Log, TEXT("QueryParam: %s : %s"), *QueryParam.Key, *QueryParam.Value);
-	}
-
-	for (auto PathParam : Request.PathParams)
-	{
-		UE_LOG(LogTemp, Log, TEXT("PathParam: %s : %s"), *PathParam.Key, *PathParam.Value);
-	} */
 	
 	FString RequestAsFString = UTF8_TO_TCHAR(reinterpret_cast<const char*>(Request.Body.GetData()));
-	
-	// UE_LOG(LogTemp, Log, TEXT("Body: %s"), *RequestAsFString);
-
 	const FString Type = GetJsonValue(RequestAsFString,"Type");
 	const FString PackagePath = GetJsonValue(RequestAsFString,"PackagePath");
 	
 	if(Type == "Info")
 	{
-		return JsonResponse(AssetUtil::GetInfo(PackagePath));
+		return Response(AssetUtil::GetInfo(PackagePath));
 	}
 	else if(Type == "Thumbnail")
 	{
-		return BinaryResponse(AssetUtil::GetThumbnail(PackagePath));
+		return Response(AssetUtil::GetThumbnail(PackagePath));
+	}
+	else if(Type == "Path") 
+	{
+		return PathResponse();
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Invalid Request Type: %s"), *Type);
-		return nullptr;
 	}
+	
+	return nullptr;
 }
 
-
-// TUniquePtr<FHttpServerResponse> ServerUtil::FindThumbnail(const FHttpServerRequest& Request) 
-// {
-// 	UE_LOG(LogTemp, Log, TEXT("Request Received, Processing..."));
-// 	if (GEngine != nullptr)
-// 	{
-// 		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("Request Received, Processing..."));
-// 	}
-// 	FString RequestAsFString;
-// 	for (auto QueryParam : Request.QueryParams)
-// 	{
-// 		UE_LOG(LogTemp, Log, TEXT("QueryParam: %s : %s"), *QueryParam.Key, *QueryParam.Value);
-// 		RequestAsFString = QueryParam.Value;
-// 	}
-//
-// 	for (auto PathParam : Request.PathParams)
-// 	{
-// 		UE_LOG(LogTemp, Log, TEXT("PathParam: %s : %s"), *PathParam.Key, *PathParam.Value);
-// 	}
-//
-// 	// FString RequestAsFString = UTF8_TO_TCHAR(reinterpret_cast<const char*>(Request.Body.GetData()));
-// 	
-// 	UE_LOG(LogTemp, Log, TEXT("Body: %s"), *RequestAsFString);
-//
-// 	return BinaryResponse(AssetUtil::GetThumbnail(RequestAsFString));
-// }
 
 FString ServerUtil::GetJsonValue(const FString& JsonString, const FString& Key)
 {
@@ -162,3 +93,43 @@ FString ServerUtil::GetJsonValue(const FString& JsonString, const FString& Key)
 	return JsonObject->GetStringField(Key);
 }
 
+// If you want to get other information(s).
+// Please create/reload/edit the following response and call from FindInfo().
+
+// Dependencies response
+TUniquePtr<FHttpServerResponse> ServerUtil::Response(const FAssetInfo& AssetInfo)
+{
+	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
+	
+	TArray< TSharedPtr<FJsonValue> > DependenciesJson;
+	for( FName Dependency : AssetInfo.AssetDependencies)
+	{
+		DependenciesJson.Add(MakeShareable(new FJsonValueString(Dependency.ToString())));
+	}
+	
+	JsonObject->SetStringField(TEXT("Class"), AssetInfo.AssetClass.ToString());
+	JsonObject->SetArrayField(TEXT("Dependencies"), DependenciesJson);
+	
+	FString JsonString;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&JsonString);
+
+	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
+	return FHttpServerResponse::Create(JsonString, TEXT("application/json"));
+}
+// Thumbnail response
+TUniquePtr<FHttpServerResponse> ServerUtil::Response(TArray<uint8> BinaryData)
+{
+	return FHttpServerResponse::Create(BinaryData, TEXT("image/png"));
+}
+// Project root path response
+TUniquePtr<FHttpServerResponse> ServerUtil::PathResponse()
+{
+	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
+	JsonObject->SetStringField(TEXT("Path"), UKismetSystemLibrary::GetProjectDirectory());
+	
+	FString JsonString;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&JsonString);
+
+	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
+	return FHttpServerResponse::Create(JsonString, TEXT("application/json"));
+}

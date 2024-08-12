@@ -27,8 +27,8 @@ bool ServerUtil::Start(const uint32 Port)
 
 	UE_LOG(LogTemp, Log, TEXT("Starting Bind Router..."));
 	
-	FHttpPath InfoPath("/Info");
-	HttpRouter->BindRoute(InfoPath, EHttpServerRequestVerbs::VERB_POST, CreateHandler(FindInfo));
+	FHttpPath InfoPath("/AssetLibrary");
+	HttpRouter->BindRoute(InfoPath, EHttpServerRequestVerbs::VERB_POST, CreateHandler(GetAssetInfo));
 
 	HttpServerInstance->StartAllListeners();
 	
@@ -55,7 +55,7 @@ FHttpRequestHandler ServerUtil::CreateHandler(const UnrealHttpServer::FHttpRespo
 	};
 }
 
-TUniquePtr<FHttpServerResponse> ServerUtil::FindInfo(const FHttpServerRequest& Request)
+TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetInfo(const FHttpServerRequest& Request)
 {
 	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
 	

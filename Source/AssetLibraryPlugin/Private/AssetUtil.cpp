@@ -3,8 +3,6 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "ObjectTools.h"
 #include "IImageWrapperModule.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Misc/FileHelper.h"
 
 FAssetInfo AssetUtil::GetInfo(const FString& ObjectPath)
 {

@@ -18,7 +18,7 @@ public:
 
 	static FHttpRequestHandler CreateHandler(const UnrealHttpServer::FHttpResponser& HttpResponser);
 	static FString GetJsonValue(const FString& JsonString, const FString& Key);
-	static TUniquePtr<FHttpServerResponse> FindInfo(const FHttpServerRequest& Request);
+	static TUniquePtr<FHttpServerResponse> GetAssetInfo(const FHttpServerRequest& Request);
 	static TUniquePtr<FHttpServerResponse> Response(const FAssetInfo& AssetInfo);
 	static TUniquePtr<FHttpServerResponse> Response(TArray<uint8> BinaryData);
 	static TUniquePtr<FHttpServerResponse> PathResponse();

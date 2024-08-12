@@ -21,9 +21,8 @@ struct FAssetInfo
 	}
 };
 
-class AssetUtil
+namespace AssetUtil
 {
-public:
 	//static void SaveThumbnail(FString ObjectPath, FString OutputPath);
 	
 	static FAssetInfo GetInfo(const FString& ObjectPath);

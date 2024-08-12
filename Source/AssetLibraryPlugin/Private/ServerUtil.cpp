@@ -10,13 +10,6 @@
 #include "Serialization/JsonWriter.h"
 
 
-ServerUtil::ServerUtil()
-{
-}
-
-ServerUtil::~ServerUtil()
-{
-}
 
 bool ServerUtil::Start(const uint32 Port)
 {
@@ -36,8 +29,8 @@ bool ServerUtil::Start(const uint32 Port)
 	FHttpPath ThumbnailPath("/ThumbnailPath");
 	
 	UE_LOG(LogTemp, Log, TEXT("Starting Bind Router..."));
-	HttpRouter->BindRoute(InfoPath, EHttpServerRequestVerbs::VERB_GET, CreateHandler(FindInfo));
-	HttpRouter->BindRoute(ThumbnailPath, EHttpServerRequestVerbs::VERB_GET, CreateHandler(FindThumbnail));
+	HttpRouter->BindRoute(InfoPath, EHttpServerRequestVerbs::VERB_POST, CreateHandler(FindInfo));
+	HttpRouter->BindRoute(ThumbnailPath, EHttpServerRequestVerbs::VERB_POST, CreateHandler(FindThumbnail));
 
 	HttpServerInstance->StartAllListeners();
 	
@@ -93,52 +86,79 @@ FHttpRequestHandler ServerUtil::CreateHandler(const UnrealHttpServer::FHttpRespo
 
 TUniquePtr<FHttpServerResponse> ServerUtil::FindInfo(const FHttpServerRequest& Request)
 {
-	UE_LOG(LogTemp, Log, TEXT("Request Received, Processing..."));
+	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
+	/* DebugLog */
+	/* 
 	if (GEngine != nullptr)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("Request Received, Processing..."));
 	}
-	FString RequestAsFString;
+
 	for (auto QueryParam : Request.QueryParams)
 	{
 		UE_LOG(LogTemp, Log, TEXT("QueryParam: %s : %s"), *QueryParam.Key, *QueryParam.Value);
-		RequestAsFString = QueryParam.Value;
 	}
 
 	for (auto PathParam : Request.PathParams)
 	{
 		UE_LOG(LogTemp, Log, TEXT("PathParam: %s : %s"), *PathParam.Key, *PathParam.Value);
-	}
+	} */
+	
+	FString RequestAsFString = UTF8_TO_TCHAR(reinterpret_cast<const char*>(Request.Body.GetData()));
+	
+	// UE_LOG(LogTemp, Log, TEXT("Body: %s"), *RequestAsFString);
 
-	// FString RequestAsFString = UTF8_TO_TCHAR(reinterpret_cast<const char*>(Request.Body.GetData()));
+	const FString Type = GetJsonValue(RequestAsFString,"Type");
+	const FString PackagePath = GetJsonValue(RequestAsFString,"PackagePath");
 	
-	UE_LOG(LogTemp, Log, TEXT("Body: %s"), *RequestAsFString);
-	
-	return JsonResponse(AssetUtil::GetInfo(RequestAsFString));
+	if(Type == "Info")
+	{
+		return JsonResponse(AssetUtil::GetInfo(PackagePath));
+	}
+	else if(Type == "Thumbnail")
+	{
+		return BinaryResponse(AssetUtil::GetThumbnail(PackagePath));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid Request Type: %s"), *Type);
+		return nullptr;
+	}
 }
 
-TUniquePtr<FHttpServerResponse> ServerUtil::FindThumbnail(const FHttpServerRequest& Request) 
+
+// TUniquePtr<FHttpServerResponse> ServerUtil::FindThumbnail(const FHttpServerRequest& Request) 
+// {
+// 	UE_LOG(LogTemp, Log, TEXT("Request Received, Processing..."));
+// 	if (GEngine != nullptr)
+// 	{
+// 		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("Request Received, Processing..."));
+// 	}
+// 	FString RequestAsFString;
+// 	for (auto QueryParam : Request.QueryParams)
+// 	{
+// 		UE_LOG(LogTemp, Log, TEXT("QueryParam: %s : %s"), *QueryParam.Key, *QueryParam.Value);
+// 		RequestAsFString = QueryParam.Value;
+// 	}
+//
+// 	for (auto PathParam : Request.PathParams)
+// 	{
+// 		UE_LOG(LogTemp, Log, TEXT("PathParam: %s : %s"), *PathParam.Key, *PathParam.Value);
+// 	}
+//
+// 	// FString RequestAsFString = UTF8_TO_TCHAR(reinterpret_cast<const char*>(Request.Body.GetData()));
+// 	
+// 	UE_LOG(LogTemp, Log, TEXT("Body: %s"), *RequestAsFString);
+//
+// 	return BinaryResponse(AssetUtil::GetThumbnail(RequestAsFString));
+// }
+
+FString ServerUtil::GetJsonValue(const FString& JsonString, const FString& Key)
 {
-	UE_LOG(LogTemp, Log, TEXT("Request Received, Processing..."));
-	if (GEngine != nullptr)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("Request Received, Processing..."));
-	}
-	FString RequestAsFString;
-	for (auto QueryParam : Request.QueryParams)
-	{
-		UE_LOG(LogTemp, Log, TEXT("QueryParam: %s : %s"), *QueryParam.Key, *QueryParam.Value);
-		RequestAsFString = QueryParam.Value;
-	}
+	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonString);
+	FJsonSerializer::Deserialize(Reader, JsonObject);
 
-	for (auto PathParam : Request.PathParams)
-	{
-		UE_LOG(LogTemp, Log, TEXT("PathParam: %s : %s"), *PathParam.Key, *PathParam.Value);
-	}
-
-	// FString RequestAsFString = UTF8_TO_TCHAR(reinterpret_cast<const char*>(Request.Body.GetData()));
-	
-	UE_LOG(LogTemp, Log, TEXT("Body: %s"), *RequestAsFString);
-
-	return BinaryResponse(AssetUtil::GetThumbnail(RequestAsFString));
+	return JsonObject->GetStringField(Key);
 }
+

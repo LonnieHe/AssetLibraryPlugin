@@ -13,6 +13,12 @@ FAssetInfo AssetUtil::GetInfo(const FString& ObjectPath)
 	FString Path = "/Game" + ObjectPath;
 	FAssetData AssetData = AssetRegistryModule.Get().GetAssetByObjectPath(Path);//may soft object path
 
+	if(AssetData.GetAsset() == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Asset not found: %s"), *ObjectPath);
+		return FAssetInfo();
+	}
+	
 	TArray<FName> AssetDependencies;
 	AssetRegistryModule.Get().GetDependencies(AssetData.PackageName, AssetDependencies);
 
@@ -28,7 +34,11 @@ TArray <uint8> AssetUtil::GetThumbnail(const FString& ObjectPath)
 	FString Path = "/Game" + ObjectPath;
 	FAssetData AssetData = AssetRegistryModule.Get().GetAssetByObjectPath(Path);
 
-
+	if(AssetData.GetAsset() == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Asset not found: %s"), *ObjectPath);
+		return TArray <uint8>();
+	}
 	// FObjectThumbnail* ObjectThumbnail = ThumbnailTools::GenerateThumbnailForObjectToSaveToDisk(AssetData.GetAsset());
 	FObjectThumbnail* ObjectThumbnail = ThumbnailTools::GenerateThumbnailForObjectToSaveToDisk(AssetData.GetAsset());
 	if (ObjectThumbnail)

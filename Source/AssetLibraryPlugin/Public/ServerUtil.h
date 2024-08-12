@@ -12,8 +12,6 @@
 class ASSETLIBRARYPLUGIN_API ServerUtil
 {
 public:
-	ServerUtil();
-	~ServerUtil();
 
 	static bool Start(uint32);
 	static void Stop();
@@ -23,4 +21,5 @@ public:
 	static FHttpRequestHandler CreateHandler(const UnrealHttpServer::FHttpResponser& HttpResponser);
 	static TUniquePtr<FHttpServerResponse> FindInfo(const FHttpServerRequest& Request);
 	static TUniquePtr<FHttpServerResponse> FindThumbnail(const FHttpServerRequest& Request);
+	static FString GetJsonValue(const FString& JsonString, const FString& Key);
 };

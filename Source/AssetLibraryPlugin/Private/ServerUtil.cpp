@@ -27,8 +27,9 @@ bool ServerUtil::Start(const uint32 Port)
 
 	UE_LOG(LogTemp, Log, TEXT("Starting Bind Router..."));
 	
-	FHttpPath InfoPath("/AssetLibrary");
-	HttpRouter->BindRoute(InfoPath, EHttpServerRequestVerbs::VERB_POST, CreateHandler(GetAssetInfo));
+	HttpRouter->BindRoute(FHttpPath("/Info"), EHttpServerRequestVerbs::VERB_GET, CreateHandler(GetAssetInfo));
+	HttpRouter->BindRoute(FHttpPath("/Thumbnail"), EHttpServerRequestVerbs::VERB_GET, CreateHandler(GetAssetThumbnail));
+	HttpRouter->BindRoute(FHttpPath("/Path"), EHttpServerRequestVerbs::VERB_GET, CreateHandler(GetAssetPath));
 
 	HttpServerInstance->StartAllListeners();
 	
@@ -55,35 +56,6 @@ FHttpRequestHandler ServerUtil::CreateHandler(const UnrealHttpServer::FHttpRespo
 	};
 }
 
-TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetInfo(const FHttpServerRequest& Request)
-{
-	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
-	
-	FString RequestAsFString = UTF8_TO_TCHAR(reinterpret_cast<const char*>(Request.Body.GetData()));
-	const FString Type = GetJsonValue(RequestAsFString,"Type");
-	const FString PackagePath = GetJsonValue(RequestAsFString,"PackagePath");
-	
-	if(Type == "Info")
-	{
-		return Response(AssetUtil::GetInfo(PackagePath));
-	}
-	else if(Type == "Thumbnail")
-	{
-		return Response(AssetUtil::GetThumbnail(PackagePath));
-	}
-	else if(Type == "Path") 
-	{
-		return PathResponse();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Invalid Request Type: %s"), *Type);
-	}
-	
-	return nullptr;
-}
-
-
 FString ServerUtil::GetJsonValue(const FString& JsonString, const FString& Key)
 {
 	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
@@ -94,8 +66,85 @@ FString ServerUtil::GetJsonValue(const FString& JsonString, const FString& Key)
 }
 
 // If you want to get other information(s).
-// Please create/reload/edit the following response and call from FindInfo().
+// Please create/edit the following GETs and bind to HttpRouter.
+TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetInfo(const FHttpServerRequest& Request)
+{
+	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
+	FString RequestAsFString;
 
+	// Compatibility with multiple parameter, but it DOES NOT implement subsequent processing.
+	// If multiple parameters are entered, only process the last parameter and ignore the previous ones.
+	for (auto QueryParam : Request.QueryParams)
+	{
+		UE_LOG(LogTemp, Log, TEXT("QueryParam: %s : %s"), *QueryParam.Key, *QueryParam.Value);
+		RequestAsFString = QueryParam.Value;
+	}
+	
+	// FString RequestAsFString = UTF8_TO_TCHAR(reinterpret_cast<const char*>(Request.Body.GetData()));
+	// const FString Type = GetJsonValue(RequestAsFString,"Type");
+	// const FString PackagePath = GetJsonValue(RequestAsFString,"PackagePath");
+	
+	const FAssetInfo AssetInfo = AssetUtil::GetInfo(RequestAsFString);
+	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
+	
+	if(AssetInfo.AssetClass == NAME_None)
+	{
+		return FHttpServerResponse::Create(TEXT("Asset Info not found. Pleace check the path."), TEXT("text/plain"));
+	}
+	// Fill dependencies array
+	TArray< TSharedPtr<FJsonValue> > DependenciesJson;
+	for( FName Dependency : AssetInfo.AssetDependencies)
+	{
+		DependenciesJson.Add(MakeShareable(new FJsonValueString(Dependency.ToString())));
+	}
+	
+	JsonObject->SetStringField(TEXT("Class"), AssetInfo.AssetClass.ToString());
+	JsonObject->SetArrayField(TEXT("Dependencies"), DependenciesJson);
+	
+	FString JsonString;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&JsonString);
+	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
+	
+	return FHttpServerResponse::Create(JsonString, TEXT("application/json"));
+}
+
+TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetThumbnail(const FHttpServerRequest& Request)
+{
+	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
+	FString RequestAsFString;
+	
+	for (auto QueryParam : Request.QueryParams)
+	{
+		UE_LOG(LogTemp, Log, TEXT("QueryParam: %s : %s"), *QueryParam.Key, *QueryParam.Value);
+		RequestAsFString = QueryParam.Value;
+	}
+	
+	TArray<uint8> BinaryData = AssetUtil::GetThumbnail(RequestAsFString);
+
+	if(BinaryData.Num() == 0)
+	{
+		return FHttpServerResponse::Create(TEXT("Asset Thumbnail not found. Pleace check the path."), TEXT("text/plain"));
+	}
+	
+	return FHttpServerResponse::Create(BinaryData, TEXT("image/png"));
+}
+
+TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetPath(const FHttpServerRequest&)
+{
+	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
+	
+	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
+	JsonObject->SetStringField(TEXT("Path"), UKismetSystemLibrary::GetProjectDirectory());
+	
+	FString JsonString;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&JsonString);
+
+	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
+	return FHttpServerResponse::Create(JsonString, TEXT("application/json"));
+}
+/* Old method, waiting to be deleted */
+// If you want to get other information(s).
+// Please create/reload/edit the following response and call from FindInfo().
 // Dependencies response
 TUniquePtr<FHttpServerResponse> ServerUtil::Response(const FAssetInfo& AssetInfo)
 {

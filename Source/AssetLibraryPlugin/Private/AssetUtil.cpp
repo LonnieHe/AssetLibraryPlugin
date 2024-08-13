@@ -13,7 +13,7 @@ FAssetInfo AssetUtil::GetInfo(const FString& ObjectPath)
 
 	if(AssetData.GetAsset() == nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Asset not found: %s"), *ObjectPath);
+		UE_LOG(LogTemp, Warning, TEXT("AssetInfo not found: %s"), *ObjectPath);
 		return FAssetInfo();
 	}
 	
@@ -34,7 +34,7 @@ TArray <uint8> AssetUtil::GetThumbnail(const FString& ObjectPath)
 
 	if(AssetData.GetAsset() == nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Asset not found: %s"), *ObjectPath);
+		UE_LOG(LogTemp, Warning, TEXT("AssetThumbnail not found: %s"), *ObjectPath);
 		return TArray <uint8>();
 	}
 

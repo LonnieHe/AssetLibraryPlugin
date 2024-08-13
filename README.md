@@ -16,22 +16,24 @@ There are three routers:
 - /Path
 
 
-### Example
 
-#### 1. Get asset Dependencies
+## Example
 
->127.0.0.1:7788/Info?1=/AssetLibrary/Surface/Stone_Tiles_Facade_veqldaqo/MI_StoneTileFacade.MI_StoneTileFacade
+`key` is unnecessary, plugin only check `value` as PackageName.
+### 1. Get asset Dependencies
+
+>127.0.0.1:7788/Info?Name=/AssetLibrary/Surface/Stone_Tiles_Facade_veqldaqo/MI_StoneTileFacade
 
 
 ![Info](./pic/Info.png)
 
-#### 2. Get asset Thumbnail
+### 2. Get asset Thumbnail
 
->127.0.0.1:7788/Info?1=/AssetLibrary/Surface/Stone_Tiles_Facade_veqldaqo/MI_StoneTileFacade.MI_StoneTileFacade
+>127.0.0.1:7788/Info?Name=/AssetLibrary/Surface/Stone_Tiles_Facade_veqldaqo/MI_StoneTileFacade
 
 ![Thumbnail](./pic/Thumbnail.png)
 
-#### 3. Get Project Path
+### 3. Get Project Path
 
 >127.0.0.1:7788/Path
 

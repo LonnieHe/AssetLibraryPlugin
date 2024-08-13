@@ -89,7 +89,7 @@ TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetInfo(const FHttpServerReques
 	
 	if(AssetInfo.AssetClass == NAME_None)
 	{
-		return FHttpServerResponse::Create(TEXT("Asset Info not found. Pleace check the path."), TEXT("text/plain"));
+		return FHttpServerResponse::Create(TEXT("Info not found. Pleace check the path."), TEXT("text/plain"));
 	}
 	// Fill dependencies array
 	TArray< TSharedPtr<FJsonValue> > DependenciesJson;
@@ -123,7 +123,7 @@ TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetThumbnail(const FHttpServerR
 
 	if(BinaryData.Num() == 0)
 	{
-		return FHttpServerResponse::Create(TEXT("Asset Thumbnail not found. Pleace check the path."), TEXT("text/plain"));
+		return FHttpServerResponse::Create(TEXT("Thumbnail not found. Pleace check the path."), TEXT("text/plain"));
 	}
 	
 	return FHttpServerResponse::Create(BinaryData, TEXT("image/png"));
@@ -132,15 +132,7 @@ TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetThumbnail(const FHttpServerR
 TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetPath(const FHttpServerRequest&)
 {
 	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
-	
-	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
-	JsonObject->SetStringField(TEXT("Path"), UKismetSystemLibrary::GetProjectDirectory());
-	
-	FString JsonString;
-	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&JsonString);
-
-	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
-	return FHttpServerResponse::Create(JsonString, TEXT("application/json"));
+	return FHttpServerResponse::Create(UKismetSystemLibrary::GetProjectDirectory(), TEXT("application/json"));
 }
 /* Old method, waiting to be deleted */
 // If you want to get other information(s).

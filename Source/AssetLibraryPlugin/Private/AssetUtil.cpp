@@ -1,19 +1,22 @@
 ﻿#include "AssetUtil.h"
-
-#include "AssetRegistry/AssetRegistryModule.h"
 #include "ObjectTools.h"
 #include "IImageWrapperModule.h"
 
-FAssetInfo AssetUtil::GetInfo(const FString& ObjectPath)
+FString AssetUtil::PackageName2ObjectPath(const FString& PackageName)
 {
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-	
-	FString Path = "/Game" + ObjectPath;
-	FAssetData AssetData = AssetRegistryModule.Get().GetAssetByObjectPath(Path);//may soft object path
+	FString ObjectName;
+	PackageName.Split(TEXT("/"), nullptr, &ObjectName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+	return PackageName + "." + ObjectName;
+}
 
+FAssetInfo AssetUtil::GetInfo(const FString& PackageName)
+{
+	FString ObjectPath = PackageName2ObjectPath(PackageName);
+	AssetData = AssetRegistryModule.Get().GetAssetByObjectPath(ObjectPath);
+	
 	if(AssetData.GetAsset() == nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AssetInfo not found: %s"), *ObjectPath);
+		UE_LOG(LogTemp, Warning, TEXT("Asset not found: %s"), *PackageName);
 		return FAssetInfo();
 	}
 	
@@ -25,16 +28,14 @@ FAssetInfo AssetUtil::GetInfo(const FString& ObjectPath)
 	return FAssetInfo(AssetDependencies, AssetClass);
 }
 
-TArray <uint8> AssetUtil::GetThumbnail(const FString& ObjectPath)
+TArray <uint8> AssetUtil::GetThumbnail(const FString& PackageName)
 {
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-	
-	FString Path = "/Game" + ObjectPath;
-	FAssetData AssetData = AssetRegistryModule.Get().GetAssetByObjectPath(Path);
+	FString ObjectPath = PackageName2ObjectPath(PackageName);
+	AssetData = AssetRegistryModule.Get().GetAssetByObjectPath(ObjectPath);
 
 	if(AssetData.GetAsset() == nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AssetThumbnail not found: %s"), *ObjectPath);
+		UE_LOG(LogTemp, Warning, TEXT("Asset not found: %s"), *PackageName);
 		return TArray <uint8>();
 	}
 

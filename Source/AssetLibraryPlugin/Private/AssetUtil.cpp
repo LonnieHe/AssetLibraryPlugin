@@ -28,18 +28,36 @@ FAssetInfo AssetUtil::GetInfo(const FString& PackageName)
 	return FAssetInfo(AssetDependencies, AssetClass);
 }
 
-TArray <uint8> AssetUtil::GetThumbnail(const FString& PackageName)
+TArray <uint8> AssetUtil::GetThumbnail(const FString& PackageName, QueryMode Mode)
 {
 	FString ObjectPath = PackageName2ObjectPath(PackageName);
 	AssetData = AssetRegistryModule.Get().GetAssetByObjectPath(ObjectPath);
-
+	
+	FObjectThumbnail* ObjectThumbnail = nullptr;
+	FThumbnailMap ThumbnailMap;
+	
 	if(AssetData.GetAsset() == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Asset not found: %s"), *PackageName);
 		return TArray <uint8>();
 	}
 
-	FObjectThumbnail* ObjectThumbnail = ThumbnailTools::GenerateThumbnailForObjectToSaveToDisk(AssetData.GetAsset());
+	if(Mode == QueryMode::Render)
+	{
+		ObjectThumbnail = ThumbnailTools::GenerateThumbnailForObjectToSaveToDisk(AssetData.GetAsset());
+	}
+	else if(Mode == QueryMode::Cache)
+	{
+		FString PackageFilename;
+		FPackageName::DoesPackageExist(AssetData.PackageName.ToString(), &PackageFilename);
+		const FName AssetFullName = FName(*AssetData.GetFullName());
+		TSet<FName> AssetFullNames;
+		AssetFullNames.Add(AssetFullName);
+		
+		ThumbnailTools::LoadThumbnailsFromPackage(PackageFilename, AssetFullNames, ThumbnailMap);
+		ObjectThumbnail = ThumbnailMap.Find(AssetFullName);	
+	}
+	
 	if (ObjectThumbnail)
 	{
 		IImageWrapperModule& ImageWrapperModule = FModuleManager::Get().LoadModuleChecked<IImageWrapperModule>(TEXT("ImageWrapper"));

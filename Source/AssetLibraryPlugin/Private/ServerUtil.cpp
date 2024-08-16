@@ -70,21 +70,21 @@ FString ServerUtil::GetJsonValue(const FString& JsonString, const FString& Key)
 TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetInfo(const FHttpServerRequest& Request)
 {
 	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
-	FString RequestAsFString;
+	FString PackageName;
 
 	// Compatibility with multiple parameter, but it DOES NOT implement subsequent processing.
 	// If multiple parameters are entered, only process the last parameter and ignore the previous ones.
 	for (auto QueryParam : Request.QueryParams)
 	{
 		UE_LOG(LogTemp, Log, TEXT("QueryParam: %s : %s"), *QueryParam.Key, *QueryParam.Value);
-		RequestAsFString = QueryParam.Value;
+		PackageName = QueryParam.Value;
 	}
 	
 	// FString RequestAsFString = UTF8_TO_TCHAR(reinterpret_cast<const char*>(Request.Body.GetData()));
 	// const FString Type = GetJsonValue(RequestAsFString,"Type");
 	// const FString PackagePath = GetJsonValue(RequestAsFString,"PackagePath");
 	
-	const FAssetInfo AssetInfo = AssetUtil::GetInfo(RequestAsFString);
+	const FAssetInfo AssetInfo = AssetUtil::GetInfo(PackageName);
 	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
 	
 	if(AssetInfo.AssetClass == NAME_None)
@@ -111,15 +111,28 @@ TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetInfo(const FHttpServerReques
 TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetThumbnail(const FHttpServerRequest& Request)
 {
 	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
-	FString RequestAsFString;
+	FString PackageName, QueryMode;
+	AssetUtil::QueryMode Mode = AssetUtil::QueryMode::Cache;
 	
 	for (auto QueryParam : Request.QueryParams)
 	{
-		UE_LOG(LogTemp, Log, TEXT("QueryParam: %s : %s"), *QueryParam.Key, *QueryParam.Value);
-		RequestAsFString = QueryParam.Value;
+		UE_LOG(LogTemp, Log, TEXT("QueryMode: %s  Path:  %s"), *QueryParam.Key, *QueryParam.Value);
+		PackageName = QueryParam.Value;
+		QueryMode = QueryParam.Key;
 	}
+
+	if(QueryMode == TEXT("Render"))
+	{
+		UE_LOG(LogTemp, Log, TEXT("Try render Thumbnail reltime, If the texture is blurry, please try again"));
+		Mode = AssetUtil::QueryMode::Render;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("Try get cached Thumbnail, If the texture is blurry, please try Render"));
+	}
+
 	
-	TArray<uint8> BinaryData = AssetUtil::GetThumbnail(RequestAsFString);
+	TArray<uint8> BinaryData = AssetUtil::GetThumbnail(PackageName, Mode);
 
 	if(BinaryData.Num() == 0)
 	{

@@ -1,6 +1,9 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
 #include "AssetRegistry/AssetRegistryModule.h"
+
+
+
 struct FAssetInfo
 {
 	
@@ -23,11 +26,17 @@ struct FAssetInfo
 
 namespace AssetUtil
 {
+	enum QueryMode
+	{
+		Cache = 0,
+		Render
+	};
+	
 	static FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	static FAssetData AssetData;
 	
 	static FString PackageName2ObjectPath(const FString& PackageName);
 	
 	static FAssetInfo GetInfo(const FString& PackageName);
-	static TArray <uint8> GetThumbnail(const FString& PackageName);
+	static TArray <uint8> GetThumbnail(const FString& PackageName, QueryMode Mode);
 };

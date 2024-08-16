@@ -18,8 +18,7 @@ There are three routers:
 
 
 ## Example
-
-`key` is unnecessary, plugin only check `value` as PackageName.
+Set `value` as `PackageName`.
 ### 1. Get asset Dependencies
 
 >127.0.0.1:7788/Info?Name=/AssetLibrary/Surface/Stone_Tiles_Facade_veqldaqo/MI_StoneTileFacade
@@ -28,8 +27,13 @@ There are three routers:
 ![Info](./pic/Info.png)
 
 ### 2. Get asset Thumbnail
+`key` can be set 
 
->127.0.0.1:7788/Info?Name=/AssetLibrary/Surface/Stone_Tiles_Facade_veqldaqo/MI_StoneTileFacade
+as `cache` (Default. Read static invariant files from .uasset)
+
+or `render`(Rerender thumbnail from asset. There is a delay, and it may be necessary to open material editing to obtain the latest information)
+
+>127.0.0.1:7788/Thumbnail?cache=/Game/AssetLibrary/Surface/ClusterMaterial/M_ClusterGrid_Hex
 
 ![Thumbnail](./pic/Thumbnail.png)
 

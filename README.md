@@ -21,7 +21,7 @@ There are three routers:
 Set `value` as `PackageName`.
 ### 1. Get asset Dependencies
 
->127.0.0.1:7788/Info?Name=/AssetLibrary/Surface/Stone_Tiles_Facade_veqldaqo/MI_StoneTileFacade
+>127.0.0.1:7788/Info?Name=/Game/AssetLibrary/Surface/Stone_Tiles_Facade_veqldaqo/MI_StoneTileFacade
 
 
 ![Info](./pic/Info.png)

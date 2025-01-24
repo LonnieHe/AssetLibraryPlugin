@@ -152,25 +152,57 @@ TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetPath(const FHttpServerReques
 TUniquePtr<FHttpServerResponse> ServerUtil:: PicToMaterial(const FHttpServerRequest& Request)
 {
 	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
-	FString AssetName, PackagePath, FilePath;
-
+	FString AssetName, URL_Albedo, URL_Normal, URL_ARD, URL_AO, URL_Roughness, URL_Height;
+	bool UseARD = false, CreateSuccess = false;
+	
 	for (auto QueryParam : Request.QueryParams)
 	{
 	    if (QueryParam.Key == TEXT("AssetName"))
 	    {
 	        AssetName = QueryParam.Value;
 	    }
-	    else if (QueryParam.Key == TEXT("PackagePath"))
+		else if (QueryParam.Key == TEXT("Albedo"))
 	    {
-	        PackagePath = QueryParam.Value;
+	        URL_Albedo = QueryParam.Value;
 	    }
-	    else if (QueryParam.Key == TEXT("FilePath"))
+		else if (QueryParam.Key == TEXT("Normal"))
 	    {
-	        FilePath = QueryParam.Value;
+	        URL_Normal = QueryParam.Value;
+	    }
+		else if (QueryParam.Key == TEXT("ARD"))
+	    {
+	        URL_ARD = QueryParam.Value;
+	    }		
+	    else if (QueryParam.Key == TEXT("AO"))
+	    {
+	        URL_AO = QueryParam.Value;
+	    }
+	    else if (QueryParam.Key == TEXT("Roughness"))
+	    {
+	        URL_Roughness = QueryParam.Value;
+	    }
+	    else if (QueryParam.Key == TEXT("Height"))
+	    {
+	        URL_Height = QueryParam.Value;
+	    }
+	    else if (QueryParam.Key == TEXT("UseARD"))
+	    {
+	        UseARD = QueryParam.Value == TEXT("true");
 	    }
 	    UE_LOG(LogTemp, Log, TEXT("%s: %s"), *QueryParam.Key, *QueryParam.Value);
 	}
-	if (AssetUtil::PicToMaterial(AssetName, PackagePath, FilePath))
+
+	if (UseARD)
+	{
+		AssetUtil::PicToMaterial(AssetName, URL_Albedo, URL_Normal, URL_ARD);
+	}
+	else
+	{
+		AssetUtil::PicToMaterial(AssetName, URL_Albedo, URL_Normal, URL_AO, URL_Roughness, URL_Height);
+	}
+
+	
+	if (CreateSuccess)
 	{
 		return FHttpServerResponse::Create(TEXT("Success"), TEXT("text/plain"));
 	}

@@ -15,5 +15,8 @@ class ASSETLIBRARYPLUGIN_API UEditorUtil : public UAssetActionUtility
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintImplementableEvent)
-	void PictureToMaterial(const FString& AssetName,const FString& PackagePath,const FString& FilePath);
+	void PictureToMaterialARD(const FString& AssetName, const FString& Albedo, const FString& Normal, const FString& ARD);
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void PictureToMaterial(const FString& AssetName, const FString& Albedo, const FString& Normal, const FString& AO, const FString& Roughness, const FString& Height);
 };

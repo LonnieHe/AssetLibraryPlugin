@@ -77,19 +77,37 @@ TArray <uint8> AssetUtil::GetThumbnail(const FString& PackageName, QueryMode Mod
 	return TArray <uint8>();
 	
 }
-
-bool AssetUtil::PicToMaterial(const FString& AssetName, const FString& PackagePath, const FString& FilePath)
+// AO is ARD when bUseARD is true
+bool AssetUtil::LoadAndExecuteBlueprint(const FString& AssetName, const FString& Albedo, const FString& Normal, const FString& AO, const FString& Roughness, const FString& Height, bool bUseARD)
 {
-	// Load Blueprint, maybe use parameter to load different Blueprint
 	UObject* BlueprintAsset = StaticLoadObject(UObject::StaticClass(), nullptr, TEXT("/AssetLibraryPlugin/EUB_PictureToMaterial/EUB_PicToMaterial.EUB_PicToMaterial"));
 	if (UBlueprint* Blueprint = Cast<UBlueprint>(BlueprintAsset))
 	{
 		UObject* CDO = Blueprint->GeneratedClass->GetDefaultObject();
 		if (UEditorUtil* BP_EUB = Cast<UEditorUtil>(CDO))
 		{
-			BP_EUB->PictureToMaterial(AssetName, PackagePath, FilePath);
+			if (bUseARD)
+			{
+				BP_EUB->PictureToMaterialARD(AssetName, Albedo, Normal, AO);
+			}
+			else
+			{	
+				BP_EUB->PictureToMaterial(AssetName, Albedo, Normal, AO, Roughness, Height);
+			}
 		}
 	}
 	// need process error
 	return true;
 }
+
+bool AssetUtil::PicToMaterial(const FString& AssetName, const FString& Albedo, const FString& Normal, const FString& ARD)
+{
+	return LoadAndExecuteBlueprint(AssetName, Albedo, Normal, ARD, FString(), FString(), true);
+}
+
+bool AssetUtil::PicToMaterial(const FString& AssetName, const FString& Albedo, const FString& Normal, const FString& AO, const FString& Roughness, const FString& Height)
+{
+	return LoadAndExecuteBlueprint(AssetName, Albedo, Normal, AO, Roughness, Height, false);
+}
+
+

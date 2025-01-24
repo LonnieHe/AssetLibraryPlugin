@@ -30,6 +30,7 @@ bool ServerUtil::Start(const uint32 Port)
 	HttpRouter->BindRoute(FHttpPath("/Info"), EHttpServerRequestVerbs::VERB_GET, CreateHandler(GetAssetInfo));
 	HttpRouter->BindRoute(FHttpPath("/Thumbnail"), EHttpServerRequestVerbs::VERB_GET, CreateHandler(GetAssetThumbnail));
 	HttpRouter->BindRoute(FHttpPath("/Path"), EHttpServerRequestVerbs::VERB_GET, CreateHandler(GetAssetPath));
+	HttpRouter->BindRoute(FHttpPath("/PicToMaterial"), EHttpServerRequestVerbs::VERB_PUT, CreateHandler(PicToMaterial));
 
 	HttpServerInstance->StartAllListeners();
 	
@@ -108,7 +109,7 @@ TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetInfo(const FHttpServerReques
 	return FHttpServerResponse::Create(JsonString, TEXT("application/json"));
 }
 
-TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetThumbnail(const FHttpServerRequest& Request)
+TUniquePtr<FHttpServerResponse> ServerUtil:: GetAssetThumbnail(const FHttpServerRequest& Request)
 {
 	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
 	FString PackageName, QueryMode;
@@ -147,6 +148,38 @@ TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetPath(const FHttpServerReques
 	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
 	return FHttpServerResponse::Create(UKismetSystemLibrary::GetProjectDirectory(), TEXT("application/json"));
 }
+
+TUniquePtr<FHttpServerResponse> ServerUtil:: PicToMaterial(const FHttpServerRequest& Request)
+{
+	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
+	FString AssetName, PackagePath, FilePath;
+
+	for (auto QueryParam : Request.QueryParams)
+	{
+	    if (QueryParam.Key == TEXT("AssetName"))
+	    {
+	        AssetName = QueryParam.Value;
+	    }
+	    else if (QueryParam.Key == TEXT("PackagePath"))
+	    {
+	        PackagePath = QueryParam.Value;
+	    }
+	    else if (QueryParam.Key == TEXT("FilePath"))
+	    {
+	        FilePath = QueryParam.Value;
+	    }
+	    UE_LOG(LogTemp, Log, TEXT("%s: %s"), *QueryParam.Key, *QueryParam.Value);
+	}
+	if (AssetUtil::PicToMaterial(AssetName, PackagePath, FilePath))
+	{
+		return FHttpServerResponse::Create(TEXT("Success"), TEXT("text/plain"));
+	}
+	else
+	{
+		return FHttpServerResponse::Create(TEXT("Failed"), TEXT("text/plain"));
+	}
+}
+
 /* Old method, waiting to be deleted */
 // If you want to get other information(s).
 // Please create/reload/edit the following response and call from FindInfo().

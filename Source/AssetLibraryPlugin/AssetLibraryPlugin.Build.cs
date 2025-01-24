@@ -25,7 +25,7 @@ public class AssetLibraryPlugin : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "HttpServer",
+				"Core", "HttpServer"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -47,7 +47,7 @@ public class AssetLibraryPlugin : ModuleRules
 				"HTTP",
 				"HTTPServer",
 				"JsonUtilities",
-				"Json", "UnrealHTTPServer"
+				"Json", "UnrealHTTPServer","Blutility"
 			}
 			);
 		

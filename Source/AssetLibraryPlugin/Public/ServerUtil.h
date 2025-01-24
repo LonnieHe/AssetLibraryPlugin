@@ -21,6 +21,7 @@ public:
 	static TUniquePtr<FHttpServerResponse> GetAssetInfo(const FHttpServerRequest& Request);
 	static TUniquePtr<FHttpServerResponse> GetAssetThumbnail(const FHttpServerRequest& Request);
 	static TUniquePtr<FHttpServerResponse> GetAssetPath(const FHttpServerRequest&);
+	static TUniquePtr<FHttpServerResponse> PicToMaterial(const FHttpServerRequest& Request);
 	static TUniquePtr<FHttpServerResponse> Response(const FAssetInfo& AssetInfo);
 	static TUniquePtr<FHttpServerResponse> Response(TArray<uint8> BinaryData);
 	static TUniquePtr<FHttpServerResponse> PathResponse();

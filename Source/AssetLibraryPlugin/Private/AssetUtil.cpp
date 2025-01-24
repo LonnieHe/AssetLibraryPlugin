@@ -1,4 +1,6 @@
 ﻿#include "AssetUtil.h"
+
+#include "EditorUtil.h"
 #include "ObjectTools.h"
 #include "IImageWrapperModule.h"
 
@@ -74,4 +76,20 @@ TArray <uint8> AssetUtil::GetThumbnail(const FString& PackageName, QueryMode Mod
 
 	return TArray <uint8>();
 	
+}
+
+bool AssetUtil::PicToMaterial(const FString& AssetName, const FString& PackagePath, const FString& FilePath)
+{
+	// Load Blueprint, maybe use parameter to load different Blueprint
+	UObject* BlueprintAsset = StaticLoadObject(UObject::StaticClass(), nullptr, TEXT("/AssetLibraryPlugin/EUB_PictureToMaterial/EUB_PicToMaterial.EUB_PicToMaterial"));
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(BlueprintAsset))
+	{
+		UObject* CDO = Blueprint->GeneratedClass->GetDefaultObject();
+		if (UEditorUtil* BP_EUB = Cast<UEditorUtil>(CDO))
+		{
+			BP_EUB->PictureToMaterial(AssetName, PackagePath, FilePath);
+		}
+	}
+	// need process error
+	return true;
 }

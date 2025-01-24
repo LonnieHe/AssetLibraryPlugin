@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "AssetLibraryPlugin.h"
-
+#include "EditorUtil.h"
 #include "ServerUtil.h"
 
 #define LOCTEXT_NAMESPACE "FAssetLibraryPluginModule"

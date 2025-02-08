@@ -6,32 +6,35 @@ This plugin provides a simple asset library interface for retrieving assets info
 
 ## How to use
 
-### Default listening port `7788`
+### Default port `7788`
+When the editor starts, a built-in server listening port.
 
-When the editor starts, it has a built-in server listening port and uses `GET` for communication.
-
-There are three routers:
+#### There are three `GET` routers:
 - /Info 
 - /Thumbnail
 - /Path
 
+#### A `PUT` router：
+
+- /PicToMaterial
+
 
 
 ## Example
-Set `value` as `PackageName`.
-### 1. Get asset Dependencies
 
+### 1. Get asset Dependencies
+Set `value` as `PackageName`.
 >127.0.0.1:7788/Info?Name=/Game/AssetLibrary/Surface/Stone_Tiles_Facade_veqldaqo/MI_StoneTileFacade
 
 
 ![Info](./pic/Info.png)
 
 ### 2. Get asset Thumbnail
-`key` can be set 
+`key` can be set as `cache` or `render`:
 
-as `cache` (Default. Read static invariant files from .uasset)
+`cache` - Default. Read static invariant files from .uasset
 
-or `render`(Rerender thumbnail from asset. There is a delay, and it may be necessary to open material editing to obtain the latest information)
+`render` - Rerender thumbnail from asset. There is a delay, and it may be necessary to open material editing to obtain the latest information
 
 >127.0.0.1:7788/Thumbnail?cache=/Game/AssetLibrary/Surface/ClusterMaterial/M_ClusterGrid_Hex
 
@@ -43,7 +46,24 @@ or `render`(Rerender thumbnail from asset. There is a delay, and it may be neces
 
 ![Path](./pic/Path.png)
 
-TODO
-- More query methods
+### 4. Create Material form URL
+Obtain texture address using [Asset Library Client]()
+
+
+![CreateM](./pic/Giftutorial.gif)
+
+
+`AssetName` is preferably equal to the folder name.
+
+If using ARD, it is necessary to set `UseARD` to true and provide the ARD address, and `AO` \ `Height` \ `Roughness` is no longer required.
+
+![Create](./pic/image.png)
+
+At present, this method **ignores multi-level directories**, and each material occupies a folder in `ImportedMaterial`
+
+![CreateMaterial](./pic/CreateMaterial.png)
+
+now defalut formart is SRGBA, other format texture may led color error.
+s
 
 ![Todo](./pic/UeWebServer.png)

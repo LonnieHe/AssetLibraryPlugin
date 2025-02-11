@@ -78,7 +78,7 @@ TArray <uint8> AssetUtil::GetThumbnail(const FString& PackageName, QueryMode Mod
 	
 }
 // AO is ARD when bUseARD is true
-bool AssetUtil::LoadAndExecuteBlueprint(const FString& AssetName, const FString& Albedo, const FString& Normal, const FString& AO, const FString& Roughness, const FString& Height, bool bUseARD)
+bool AssetUtil::LoadAndExecuteBlueprint(const FString& AssetName,const FString& MidPath, const FString& Albedo, const FString& Normal, const FString& AO, const FString& Roughness, const FString& Height, bool bUseARD)
 {
 	UObject* BlueprintAsset = StaticLoadObject(UObject::StaticClass(), nullptr, TEXT("/AssetLibraryPlugin/EUB_PictureToMaterial/EUB_PicToMaterial.EUB_PicToMaterial"));
 	if (UBlueprint* Blueprint = Cast<UBlueprint>(BlueprintAsset))
@@ -88,11 +88,11 @@ bool AssetUtil::LoadAndExecuteBlueprint(const FString& AssetName, const FString&
 		{
 			if (bUseARD)
 			{
-				BP_EUB->PictureToMaterialARD(AssetName, Albedo, Normal, AO);
+				BP_EUB->PictureToMaterialARD(AssetName, MidPath, Albedo, Normal, AO);
 			}
 			else
 			{	
-				BP_EUB->PictureToMaterial(AssetName, Albedo, Normal, AO, Roughness, Height);
+				BP_EUB->PictureToMaterial(AssetName, MidPath, Albedo, Normal, AO, Roughness, Height);
 			}
 		}
 	}
@@ -100,14 +100,14 @@ bool AssetUtil::LoadAndExecuteBlueprint(const FString& AssetName, const FString&
 	return true;
 }
 
-bool AssetUtil::PicToMaterial(const FString& AssetName, const FString& Albedo, const FString& Normal, const FString& ARD)
+bool AssetUtil::PicToMaterial(const FString& AssetName, const FString& MidPath, const FString& Albedo, const FString& Normal, const FString& ARD)
 {
-	return LoadAndExecuteBlueprint(AssetName, Albedo, Normal, ARD, FString(), FString(), true);
+	return LoadAndExecuteBlueprint(AssetName, MidPath, Albedo, Normal, ARD, FString(), FString(), true);
 }
 
-bool AssetUtil::PicToMaterial(const FString& AssetName, const FString& Albedo, const FString& Normal, const FString& AO, const FString& Roughness, const FString& Height)
+bool AssetUtil::PicToMaterial(const FString& AssetName, const FString& MidPath, const FString& Albedo, const FString& Normal, const FString& AO, const FString& Roughness, const FString& Height)
 {
-	return LoadAndExecuteBlueprint(AssetName, Albedo, Normal, AO, Roughness, Height, false);
+	return LoadAndExecuteBlueprint(AssetName, MidPath, Albedo, Normal, AO, Roughness, Height, false);
 }
 
 

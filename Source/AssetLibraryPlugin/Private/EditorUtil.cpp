@@ -20,51 +20,66 @@ void UEditorUtil::CopyTexture(UTexture2D* SourceTexture, UTexture2D* TargetTextu
 		return;
 	}
 
-	// 确保源纹理有数据
-	FTexture2DMipMap& SourceMip = SourceTexture->PlatformData->Mips[0];
-	if (SourceMip.BulkData.GetBulkDataSize() <= 0)
+	// Check if the source texture has valid source data
+	if (!SourceTexture->Source.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Source texture has no valid data!"));
-		return;
-	}
+		UE_LOG(LogTemp, Warning, TEXT("Source texture has no valid source data, attempting to use PlatformData..."));
 
-	// 获取源纹理数据
-	void* SourceData = SourceMip.BulkData.Lock(LOCK_READ_ONLY);
-	if (!SourceData)
+		// Check if the source texture has valid platform data
+		FTexture2DMipMap& SourceMip = SourceTexture->PlatformData->Mips[0];
+		if (SourceMip.BulkData.GetBulkDataSize() <= 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Source texture has no valid platform data!"));
+			return;
+		}
+
+		// Lock the source texture platform data
+		void* SourceData = SourceMip.BulkData.Lock(LOCK_READ_ONLY);
+		if (!SourceData)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to lock source texture platform data!"));
+			return;
+		}
+		
+		int32 Width = SourceTexture->GetSizeX();
+		int32 Height = SourceTexture->GetSizeY();
+		EPixelFormat PixelFormat = SourceTexture->PlatformData->PixelFormat; // NOT USE YET
+		
+		// Create the target texture platform data
+		TargetTexture->PlatformData = new FTexturePlatformData();
+		TargetTexture->PlatformData->SizeX = Width;
+		TargetTexture->PlatformData->SizeY = Height;
+		TargetTexture->PlatformData->PixelFormat = PixelFormat;
+		
+		// Create the target texture mip map
+		FTexture2DMipMap* TargetMip = new FTexture2DMipMap();
+		TargetMip->SizeX = Width;
+		TargetMip->SizeY = Height;
+		TargetTexture->PlatformData->Mips.Add(TargetMip);
+
+		// Lock the target texture mip map
+		TargetMip->BulkData.Lock(LOCK_READ_WRITE);
+		void* TargetData = TargetMip->BulkData.Realloc(SourceMip.BulkData.GetBulkDataSize());
+		FMemory::Memcpy(TargetData, SourceData, SourceMip.BulkData.GetBulkDataSize());
+		TargetMip->BulkData.Unlock();
+		SourceMip.BulkData.Unlock();
+
+		TargetTexture->Source.Init(Width, Height, 1, 1, ETextureSourceFormat::TSF_BGRA8, static_cast<const uint8*>(SourceData));
+	}
+	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to lock source texture data!"));
-		return;
+		int32 Width = SourceTexture->Source.GetSizeX();
+		int32 Height = SourceTexture->Source.GetSizeY();
+		ETextureSourceFormat SourceFormat = SourceTexture->Source.GetFormat();
+		int32 NumSlices = SourceTexture->Source.GetNumSlices();
+		TArray64<uint8> SourceData;
+		SourceTexture->Source.GetMipData(SourceData, 0); 
+		
+		TargetTexture->Source.Init(Width, Height, NumSlices, 1, SourceFormat, SourceData.GetData());
 	}
-
-	// 获取纹理格式
-	EPixelFormat PixelFormat = SourceTexture->PlatformData->PixelFormat;
-	int32 Width = SourceTexture->GetSizeX();
-	int32 Height = SourceTexture->GetSizeY();
-
 	
-	// 创建目标纹理的数据
-	TargetTexture->PlatformData = new FTexturePlatformData();
-	TargetTexture->PlatformData->SizeX = Width;
-	TargetTexture->PlatformData->SizeY = Height;
-	TargetTexture->PlatformData->PixelFormat = PixelFormat;
-
-	// 创建 MIP 数据
-	FTexture2DMipMap* TargetMip = new FTexture2DMipMap();
-	TargetMip->SizeX = Width;
-	TargetMip->SizeY = Height;
-	TargetTexture->PlatformData->Mips.Add(TargetMip);
-
-	// 分配数据存储空间
-	TargetMip->BulkData.Lock(LOCK_READ_WRITE);
-	void* TargetData = TargetMip->BulkData.Realloc(SourceMip.BulkData.GetBulkDataSize());
-	FMemory::Memcpy(TargetData, SourceData, SourceMip.BulkData.GetBulkDataSize());
-	TargetMip->BulkData.Unlock();
-	SourceMip.BulkData.Unlock();
-
-	// 更新资源
-
-	TargetTexture->Source.Init(Width, Height, 1, 1, ETextureSourceFormat::TSF_BGRA8, static_cast<const uint8*>(SourceData));
 	TargetTexture->UpdateResource();
+	TargetTexture->MarkPackageDirty();
 }
 
 
@@ -103,7 +118,7 @@ UTexture2D* UEditorUtil::CreateTexture2DAsset(UTexture2D* Texture, FString InNam
 		{
 			// package needs saving
 			Package->MarkPackageDirty();
-		
+			
 			// Update  settings
 			Result->VirtualTextureStreaming = VirtualTextureStreaming;
 			Result->bFlipGreenChannel = FlipGreenChannel;
@@ -113,7 +128,7 @@ UTexture2D* UEditorUtil::CreateTexture2DAsset(UTexture2D* Texture, FString InNam
 			// Notify the asset registry
 			FAssetRegistryModule::AssetCreated(Result);
 
-			//???
+			// Save the package
 			FString PackageFileName = FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
 			bool bSaved = UPackage::SavePackage(Package, Result, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *PackageFileName, GError, nullptr, true, true, SAVE_NoError);
 

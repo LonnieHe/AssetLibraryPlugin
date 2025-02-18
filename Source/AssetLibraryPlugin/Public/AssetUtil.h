@@ -40,7 +40,7 @@ namespace AssetUtil
 	static FAssetInfo GetInfo(const FString& PackageName);
 	static TArray <uint8> GetThumbnail(const FString& PackageName, QueryMode Mode);
 
-	static bool PicToMaterial(const FString& AssetName, const FString& Albedo, const FString& Normal, const FString& ARD);
-	static bool PicToMaterial(const FString& AssetName, const FString& Albedo, const FString& Normal, const FString& AO, const FString& Roughness, const FString& Height);
-	static bool LoadAndExecuteBlueprint(const FString& AssetName, const FString& Albedo, const FString& Normal, const FString& AO, const FString& Roughness, const FString& Height, bool bUseARD);
+	static bool PicToMaterial(const FString& AssetName, const FString& MidPath, const FString& Albedo, const FString& Normal, const FString& ARD);
+	static bool PicToMaterial(const FString& AssetName, const FString& MidPath, const FString& Albedo, const FString& Normal, const FString& AO, const FString& Roughness, const FString& Height);
+	static bool LoadAndExecuteBlueprint(const FString& AssetName, const FString& MidPath, const FString& Albedo, const FString& Normal, const FString& AO, const FString& Roughness, const FString& Height, bool bUseARD);
 };

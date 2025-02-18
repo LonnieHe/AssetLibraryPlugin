@@ -152,63 +152,50 @@ TUniquePtr<FHttpServerResponse> ServerUtil::GetAssetPath(const FHttpServerReques
 TUniquePtr<FHttpServerResponse> ServerUtil:: PicToMaterial(const FHttpServerRequest& Request)
 {
 	UE_LOG(LogTemp, Log, TEXT("Asset Library Request Received, Processing..."));
-	FString AssetName, URL_Albedo, URL_Normal, URL_ARD, URL_AO, URL_Roughness, URL_Height;
+	FString AssetName, MidPath, URL_Albedo, URL_Normal, URL_ARD, URL_AO, URL_Roughness, URL_Height;
 	bool UseARD = false, CreateSuccess = false;
 	
+	TMap<FString, FString*> QueryParamMap = {
+	    {TEXT("AssetName"), &AssetName},
+	    {TEXT("MidPath"), &MidPath},
+	    {TEXT("Albedo"), &URL_Albedo},
+	    {TEXT("Normal"), &URL_Normal},
+	    {TEXT("ARD"), &URL_ARD},
+	    {TEXT("AO"), &URL_AO},
+	    {TEXT("Roughness"), &URL_Roughness},
+	    {TEXT("Height"), &URL_Height}
+	};
+
 	for (auto QueryParam : Request.QueryParams)
 	{
-	    if (QueryParam.Key == TEXT("AssetName"))
-	    {
-	        AssetName = QueryParam.Value;
-	    }
-		else if (QueryParam.Key == TEXT("Albedo"))
-	    {
-	        URL_Albedo = QueryParam.Value;
-	    }
-		else if (QueryParam.Key == TEXT("Normal"))
-	    {
-	        URL_Normal = QueryParam.Value;
-	    }
-		else if (QueryParam.Key == TEXT("ARD"))
-	    {
-	        URL_ARD = QueryParam.Value;
-	    }		
-	    else if (QueryParam.Key == TEXT("AO"))
-	    {
-	        URL_AO = QueryParam.Value;
-	    }
-	    else if (QueryParam.Key == TEXT("Roughness"))
-	    {
-	        URL_Roughness = QueryParam.Value;
-	    }
-	    else if (QueryParam.Key == TEXT("Height"))
-	    {
-	        URL_Height = QueryParam.Value;
-	    }
-	    else if (QueryParam.Key == TEXT("UseARD"))
+	    if (QueryParam.Key == TEXT("UseARD"))
 	    {
 	        UseARD = QueryParam.Value == TEXT("true");
+	    }
+	    else if (QueryParamMap.Contains(QueryParam.Key))
+	    {
+	        *QueryParamMap[QueryParam.Key] = QueryParam.Value;
 	    }
 	    UE_LOG(LogTemp, Log, TEXT("%s: %s"), *QueryParam.Key, *QueryParam.Value);
 	}
 
 	if (UseARD)
 	{
-		AssetUtil::PicToMaterial(AssetName, URL_Albedo, URL_Normal, URL_ARD);
+		AssetUtil::PicToMaterial(AssetName, MidPath , URL_Albedo,URL_Normal, URL_ARD);
 	}
 	else
 	{
-		AssetUtil::PicToMaterial(AssetName, URL_Albedo, URL_Normal, URL_AO, URL_Roughness, URL_Height);
+		AssetUtil::PicToMaterial(AssetName, MidPath, URL_Albedo ,URL_Normal, URL_AO, URL_Roughness, URL_Height);
 	}
 
 	
 	if (CreateSuccess)
 	{
-		return FHttpServerResponse::Create(TEXT("Success"), TEXT("text/plain"));
+		return FHttpServerResponse::Create(TEXT("Create Success"), TEXT("text/plain"));
 	}
 	else
 	{
-		return FHttpServerResponse::Create(TEXT("Failed"), TEXT("text/plain"));
+		return FHttpServerResponse::Create(TEXT("Create Fail"), TEXT("text/plain"));
 	}
 }
 

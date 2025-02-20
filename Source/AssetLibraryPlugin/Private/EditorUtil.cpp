@@ -58,10 +58,10 @@ void UEditorUtil::CopyTexture(UTexture2D* SourceTexture, UTexture2D* TargetTextu
 		TargetTexture->PlatformData->Mips.Add(TargetMip);
 
 		// Lock the target texture mip map
-		TargetMip->BulkData.Lock(LOCK_READ_WRITE);
-		void* TargetData = TargetMip->BulkData.Realloc(SourceMip.BulkData.GetBulkDataSize());
-		FMemory::Memcpy(TargetData, SourceData, SourceMip.BulkData.GetBulkDataSize());
-		TargetMip->BulkData.Unlock();
+		// TargetMip->BulkData.Lock(LOCK_READ_WRITE);
+		// void* TargetData = TargetMip->BulkData.Realloc(SourceMip.BulkData.GetBulkDataSize());
+		// FMemory::Memcpy(TargetData, SourceData, SourceMip.BulkData.GetBulkDataSize());
+		// TargetMip->BulkData.Unlock();
 		SourceMip.BulkData.Unlock();
 
 		TargetTexture->Source.Init(Width, Height, 1, 1, ETextureSourceFormat::TSF_BGRA8, static_cast<const uint8*>(SourceData));
@@ -84,7 +84,8 @@ void UEditorUtil::CopyTexture(UTexture2D* SourceTexture, UTexture2D* TargetTextu
 
 
 
-UTexture2D* UEditorUtil::CreateTexture2DAsset(UTexture2D* Texture, FString InName, bool FlipGreenChannel, bool VirtualTextureStreaming)
+UTexture2D* UEditorUtil::CreateTexture2DAsset(UTexture2D* Texture, FString InName,
+	bool FlipGreenChannel, bool VirtualTextureStreaming, bool sRGB, int CompressionSettings)
 {
 #if WITH_EDITOR
 	if (!Texture)
@@ -122,6 +123,8 @@ UTexture2D* UEditorUtil::CreateTexture2DAsset(UTexture2D* Texture, FString InNam
 			// Update  settings
 			Result->VirtualTextureStreaming = VirtualTextureStreaming;
 			Result->bFlipGreenChannel = FlipGreenChannel;
+			Result->SRGB = sRGB;
+			Result->CompressionSettings = static_cast<TextureCompressionSettings>(CompressionSettings);// This BluePrint Can't use enum directly
 
 			Result->PostEditChange();
 

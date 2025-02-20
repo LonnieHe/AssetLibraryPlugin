@@ -181,11 +181,11 @@ TUniquePtr<FHttpServerResponse> ServerUtil:: PicToMaterial(const FHttpServerRequ
 
 	if (UseARD)
 	{
-		AssetUtil::PicToMaterial(AssetName, MidPath , URL_Albedo,URL_Normal, URL_ARD);
+		CreateSuccess = AssetUtil::PicToMaterial(AssetName, MidPath , URL_Albedo,URL_Normal, URL_ARD);
 	}
 	else
 	{
-		AssetUtil::PicToMaterial(AssetName, MidPath, URL_Albedo ,URL_Normal, URL_AO, URL_Roughness, URL_Height);
+		CreateSuccess = AssetUtil::PicToMaterial(AssetName, MidPath, URL_Albedo ,URL_Normal, URL_AO, URL_Roughness, URL_Height);
 	}
 
 	

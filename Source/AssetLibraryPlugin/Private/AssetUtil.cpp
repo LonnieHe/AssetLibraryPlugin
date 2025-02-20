@@ -88,16 +88,16 @@ bool AssetUtil::LoadAndExecuteBlueprint(const FString& AssetName,const FString& 
 		{
 			if (bUseARD)
 			{
-				BP_EUB->PictureToMaterialARD(AssetName, MidPath, Albedo, Normal, AO);
+				return BP_EUB->PictureToMaterialARD(AssetName, MidPath, Albedo, Normal, AO);
 			}
 			else
 			{	
-				BP_EUB->PictureToMaterial(AssetName, MidPath, Albedo, Normal, AO, Roughness, Height);
+				return BP_EUB->PictureToMaterial(AssetName, MidPath, Albedo, Normal, AO, Roughness, Height);
 			}
 		}
 	}
 	// need process error
-	return true;
+	return false;
 }
 
 bool AssetUtil::PicToMaterial(const FString& AssetName, const FString& MidPath, const FString& Albedo, const FString& Normal, const FString& ARD)

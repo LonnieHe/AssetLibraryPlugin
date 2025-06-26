@@ -19,10 +19,10 @@ public:
 	 * Create MATERIAL asset from downloaded image.
 	 * Implement in BluePrint and Call by AssetUtil::PicToMaterial().
 	 */
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
 	bool PictureToMaterialARD(const FString& AssetName, const FString& MidPath, const FString& Albedo, const FString& Normal, const FString& ARD);
 	
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
 	bool PictureToMaterial(const FString& AssetName, const FString& MidPath, const FString& Albedo, const FString& Normal, const FString& AO, const FString& Roughness, const FString& Height);
 
 	/*

@@ -46,9 +46,11 @@ Set `value` as `PackageName`.
 
 ![Path](./pic/Path.png)
 
-### 4. Create Material form URL
-Obtain texture address using [Asset Library Client]()
+### 4. Use in editor
 
+![easy](./pic/tutorial2.png)
+
+### 5. Create Material form URL
 
 ![CreateM](./pic/Giftutorial.gif)
 

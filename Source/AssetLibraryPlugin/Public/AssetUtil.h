@@ -2,7 +2,11 @@
 #include "CoreMinimal.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 
-
+/* AssetUtil.h
+	Get asset data.
+	Process Path and format.
+	Call blueprint to create asset.
+*/
 
 struct FAssetInfo
 {

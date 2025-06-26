@@ -6,8 +6,11 @@
 #include "AssetUtil.h"
 #include "HttpServerResponse.h"
 #include "WebUtil.h"
-/**
- * 
+/* ServerUtil.h
+	Listening port 7788
+	Processing messages
+	Call functions in AssetUtil.h
+	Return response
  */
 class ASSETLIBRARYPLUGIN_API ServerUtil
 {

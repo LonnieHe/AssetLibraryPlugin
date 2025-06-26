@@ -44,6 +44,7 @@ void UEditorUtil::CopyTexture(UTexture2D* SourceTexture, UTexture2D* TargetTextu
 		int32 Width = SourceTexture->GetSizeX();
 		int32 Height = SourceTexture->GetSizeY();
 		EPixelFormat PixelFormat = SourceTexture->PlatformData->PixelFormat; // NOT USE YET
+		ETextureSourceFormat SourceFormat = TSF_Invalid;
 		
 		// Create the target texture platform data
 		TargetTexture->PlatformData = new FTexturePlatformData();
@@ -64,7 +65,18 @@ void UEditorUtil::CopyTexture(UTexture2D* SourceTexture, UTexture2D* TargetTextu
 		// TargetMip->BulkData.Unlock();
 		SourceMip.BulkData.Unlock();
 
-		TargetTexture->Source.Init(Width, Height, 1, 1, ETextureSourceFormat::TSF_BGRA8, static_cast<const uint8*>(SourceData));
+		// Determine the source format based on the pixel format(platform)
+		switch (PixelFormat)
+		{
+			case PF_B8G8R8A8:
+				SourceFormat = TSF_BGRA8;
+				break;
+			case PF_G8:
+				SourceFormat = TSF_G8;
+				break;
+		}
+		
+		TargetTexture->Source.Init(Width, Height, 1, 1, SourceFormat, static_cast<const uint8*>(SourceData));
 	}
 	else
 	{
